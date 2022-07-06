@@ -54,13 +54,15 @@ async def balance_teams(ctx):
     for index, user in enumerate(user_ids):
         res = get_user_data(user)
         if None == res:
-            await ctx.send("Error handling user: [%s]" % user)
+            await ctx.send("Error handling user: [%s]" % user, delete_after=30)
         user_ids[index] = res
 
     def mmr(summoner):
         return summoner.get("mmr", 0)
 
     user_ids.sort(key=mmr)
+    user_ids = user_ids[:10]
+
     # First get two randoms to each one of those
     member = user_ids.pop(random.randrange(len(user_ids)))
     team_a_members, team_a_mmr = [member], member["mmr"]
@@ -69,10 +71,11 @@ async def balance_teams(ctx):
     team_b_members, team_b_mmr = [member], member["mmr"]
 
     # After randomization, make as equal as possible
-    while 0 != len(user_ids) and 5 != len(team_b_members):
+
+    while 0 != len(user_ids):
         member = user_ids.pop(0)
 
-        if team_b_mmr > team_a_mmr and 5 != len(team_a_members):
+        if team_b_mmr > team_a_mmr:
             team_a_mmr += member["mmr"]
             team_a_members.append(member)
             continue
@@ -106,9 +109,9 @@ async def balance_teams(ctx):
     teams_str += ""
 
     embedVar = discord.Embed(title="Balance teams", description="", color=0x74E18B)
-    embedVar.add_field(name="TeamA", value=team_a_str, inline=True)
-    embedVar.add_field(name="TeamB", value=team_b_str, inline=True)
-    await ctx.send(embed=embedVar)
+    embedVar.add_field(name="TeamA - [%s]" % team_a_mmr, value=team_a_str, inline=True)
+    embedVar.add_field(name="TeamB - [%s]" % team_b_mmr, value=team_b_str, inline=True)
+    await ctx.send(embed=embedVar, delete_after=120)
 
     #print(teams_str)
     #await ctx.send(teams_str)
